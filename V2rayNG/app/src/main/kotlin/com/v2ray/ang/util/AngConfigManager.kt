@@ -1,6 +1,7 @@
 package com.v2ray.ang.util
 
 import android.graphics.Bitmap
+import android.os.Message
 import android.text.TextUtils
 import android.util.Log
 import com.google.gson.Gson
@@ -15,6 +16,7 @@ import com.v2ray.ang.AppConfig.SS_PROTOCOL
 import com.v2ray.ang.AppConfig.VMESS_PROTOCOL
 import com.v2ray.ang.R
 import com.v2ray.ang.dto.AngConfig
+import com.v2ray.ang.dto.V2rayConfig
 import com.v2ray.ang.dto.VmessQRCode
 import com.v2ray.ang.extension.defaultDPreference
 import org.jetbrains.anko.toast
@@ -22,6 +24,10 @@ import java.net.URLDecoder
 import java.util.*
 import java.net.*
 import java.math.BigInteger
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import java.io.IOException
+
 
 object AngConfigManager {
     private lateinit var app: AngApplication
@@ -29,6 +35,32 @@ object AngConfigManager {
     val configs: AngConfig get() = angConfig
 
     fun inject(app: AngApplication) {
+        Log.i("SixSA", "inject");
+        //Get json from Http
+        Thread(object : Runnable{
+            override fun run() {
+                val url = "http://192.168.1.86:5000/"
+                val okHttpClient = OkHttpClient()
+                val request = Request.Builder()
+                        .url(url)
+                        .build()
+                val call = okHttpClient.newCall(request)
+                try {
+                    Log.i("SixSA", "okHttp call");
+                    val response = call.execute()
+ //                   Log.i("SixSA", response.body().string())
+                    val context = response.body().string();
+                    if (!TextUtils.isEmpty(context)) {
+                        val v2rayConfig = Gson().fromJson(context, V2rayConfig::class.java)
+                        Log.i("SixSA", v2rayConfig.toString())
+                    }
+                } catch (e: IOException) {
+                    Log.i("SixSA", e.toString());
+                }
+            }
+        }).start()
+        Log.i("SixSA", "http end");
+        //
         this.app = app
         if (app.firstRun) {
         }
@@ -40,6 +72,10 @@ object AngConfigManager {
      */
     fun loadConfig() {
         try {
+            //If get json from server, then use server json instead.
+
+
+            //If not get json from server, then use default.
             val context = app.defaultDPreference.getPrefString(ANG_CONFIG, "")
             if (!TextUtils.isEmpty(context)) {
                 angConfig = Gson().fromJson(context, AngConfig::class.java)

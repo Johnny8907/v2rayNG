@@ -1,6 +1,7 @@
 package com.v2ray.ang
 
 import android.app.Application
+import com.facebook.stetho.Stetho
 //import com.squareup.leakcanary.LeakCanary
 import com.v2ray.ang.util.AngConfigManager
 import me.dozen.dpreference.DPreference
@@ -12,7 +13,7 @@ class AngApplication : Application() {
     }
 
     var firstRun = false
-        private set
+            private set
 
     val defaultDPreference by lazy { DPreference(this, packageName + "_preferences") }
 
@@ -20,7 +21,7 @@ class AngApplication : Application() {
         super.onCreate()
 
 //        LeakCanary.install(this)
-
+        Stetho.initializeWithDefaults(this);
         firstRun = defaultSharedPreferences.getInt(PREF_LAST_VERSION, 0) != BuildConfig.VERSION_CODE
         if (firstRun)
             defaultSharedPreferences.edit().putInt(PREF_LAST_VERSION, BuildConfig.VERSION_CODE).apply()
